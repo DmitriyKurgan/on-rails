@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node spec/migrate-plugin.mjs)",
+      "Bash(ls agents/*.md)",
+      "Bash(npm --version)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('d:/Work/AI/on-rails/.claude/settings.local.json','utf8'\\)\\); console.log\\('settings.local.json OK'\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('d:/Work/AI/game-factory-plugin-threejs/.claude-plugin/marketplace.json','utf8'\\)\\); console.log\\('marketplace.json OK'\\)\")",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const pp = require\\('postprocessing'\\); console.log\\(Object.keys\\(pp\\).filter\\(k=>/Effect|Pass|Kernel|Blend|GlitchMode/.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node -e \"const pp = require\\('postprocessing'\\); const keys = Object.keys\\(pp\\); console.log\\(keys.filter\\(k=>/Kernel|SMAA|Vignette|RenderPass/.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -sS http://127.0.0.1:5173/ -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(curl -sS http://127.0.0.1:5173/src/main.ts -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -sS http://127.0.0.1:5173/src/App.ts -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -sS http://127.0.0.1:5173/src/world/Road.ts -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -sS http://127.0.0.1:5173/src/effects/postprocessing/Composer.ts -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);let s=fs.readFileSync\\('implementation.md','utf8'\\);s=s.replace\\(/- \\\\[ \\\\]/g,'- [x]'\\);fs.writeFileSync\\('implementation.md',s\\);console.log\\('done'\\)\")"
+    ],
+    "additionalDirectories": [
+      "d:\\Work\\AI\\game-factory-plugin-threejs\\.claude-plugin",
+      "d:\\Work\\AI\\game-factory-plugin-threejs"
+    ]
+  },
+  "enabledPlugins": {
+    "game-factory-plugin-threejs@game-factory-local": true
+  },
+  "extraKnownMarketplaces": {
+    "game-factory-local": {
+      "source": {
+        "source": "directory",
+        "path": "d:\\Work\\AI\\game-factory-plugin-threejs"
+      }
+    }
+  }
+}
