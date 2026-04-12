@@ -1,0 +1,815 @@
+{
+  "gameTitle": "On-Rails Water Slide Racer",
+  "extractedAt": "2026-04-11T00:00:00Z",
+  "sourcePromptHash": "the-result-must-feel-like-a-premium",
+  "projectType": "3D_ThreeJS_GLSL_GLB",
+  "notes": "Target is 3D Three.js + GLSL + GLB. Pixel dimensions become world units where applicable. UI strings in the HUD remain literal strings preserved verbatim.",
+
+  "uiStrings": [
+    {
+      "id": "LIT-UI-001",
+      "category": "ui_string",
+      "value": "POS",
+      "lang": "en",
+      "screen": "hud",
+      "element": "position_label",
+      "position": "top-left",
+      "source": "screenshot:top-left HUD (pill next to pause button)",
+      "cfg_path": "UI_STRINGS.pos",
+      "notes": "Label for current race position, shown inside dark pill on top-left"
+    },
+    {
+      "id": "LIT-UI-002",
+      "category": "ui_string",
+      "value": "2/6",
+      "lang": "en",
+      "screen": "hud",
+      "element": "position_value",
+      "position": "top-left",
+      "source": "screenshot:top-left HUD",
+      "cfg_path": "UI_STRINGS.posValueFormat",
+      "notes": "Format is '{currentPosition}/{totalRacers}'. Seed value: player currently 2nd of 6 racers."
+    },
+    {
+      "id": "LIT-UI-003",
+      "category": "ui_string",
+      "value": "TIME",
+      "lang": "en",
+      "screen": "hud",
+      "element": "time_label",
+      "position": "top-right",
+      "source": "screenshot:top-right HUD",
+      "cfg_path": "UI_STRINGS.time",
+      "notes": "Label displayed above the race timer on top-right"
+    },
+    {
+      "id": "LIT-UI-004",
+      "category": "ui_string",
+      "value": "00:45.36",
+      "lang": "en",
+      "screen": "hud",
+      "element": "time_value",
+      "position": "top-right",
+      "source": "screenshot:top-right HUD",
+      "cfg_path": "UI_STRINGS.timeFormat",
+      "notes": "Format MM:SS.CC (minutes:seconds.centiseconds). Seed value 00:45.36."
+    },
+    {
+      "id": "LIT-UI-005",
+      "category": "ui_string",
+      "value": "AIR TIME",
+      "lang": "en",
+      "screen": "hud",
+      "element": "air_time_label",
+      "position": "right-middle",
+      "source": "screenshot:right-side HUD (below TIME)",
+      "cfg_path": "UI_STRINGS.airTime",
+      "notes": "Label for AIR TIME pill (shown only while airborne). instruction.md specifies 'AIR TIME 2.3s' seen only in air."
+    },
+    {
+      "id": "LIT-UI-006",
+      "category": "ui_string",
+      "value": "2.3 s",
+      "lang": "en",
+      "screen": "hud",
+      "element": "air_time_value",
+      "position": "right-middle",
+      "source": "screenshot:right-side HUD (below TIME)",
+      "cfg_path": "UI_STRINGS.airTimeFormat",
+      "notes": "Air time value with space between number and 's' suffix. Seed value 2.3 s."
+    },
+    {
+      "id": "LIT-UI-007",
+      "category": "ui_string",
+      "value": "BOOST",
+      "lang": "en",
+      "screen": "hud",
+      "element": "boost_button",
+      "position": "bottom-right",
+      "source": "screenshot:bottom-right HUD large circular button",
+      "cfg_path": "UI_STRINGS.boost",
+      "notes": "Large circular button with stroke-dasharray charge arc"
+    },
+    {
+      "id": "LIT-UI-008",
+      "category": "ui_string",
+      "value": "‖",
+      "lang": "symbol",
+      "screen": "hud",
+      "element": "pause_button",
+      "position": "top-left",
+      "source": "screenshot:top-left HUD pause button + implementation.md:166",
+      "cfg_path": "UI_STRINGS.pauseSymbol",
+      "notes": "Pause icon (double vertical bar symbol) at extreme top-left"
+    }
+  ],
+
+  "hudLayout": [
+    {
+      "id": "LIT-HUD-001",
+      "category": "gameplay",
+      "element": "pause_button + POS pill",
+      "position": "top-left",
+      "source": "screenshot + implementation.md:166",
+      "cfg_path": "CFG.hud.layout.topLeft",
+      "notes": "Cluster: pause button '‖' followed by 'POS 2/6' dark translucent pill with white outline"
+    },
+    {
+      "id": "LIT-HUD-002",
+      "category": "gameplay",
+      "element": "TIME + AIR TIME",
+      "position": "top-right",
+      "source": "screenshot + implementation.md:167",
+      "cfg_path": "CFG.hud.layout.topRight",
+      "notes": "TIME 00:45.36 at top, below it orange AIR TIME 2.3 s pill (visible only in air)"
+    },
+    {
+      "id": "LIT-HUD-003",
+      "category": "gameplay",
+      "element": "mini_map",
+      "position": "bottom-left",
+      "source": "screenshot + implementation.md:169",
+      "cfg_path": "CFG.hud.layout.bottomLeft",
+      "notes": "Circular SVG mini-map of spline projected on XZ, with player dot and rival dots"
+    },
+    {
+      "id": "LIT-HUD-004",
+      "category": "gameplay",
+      "element": "power_up_icon + BOOST button",
+      "position": "bottom-right",
+      "source": "screenshot + implementation.md:168",
+      "cfg_path": "CFG.hud.layout.bottomRight",
+      "notes": "Small circular power-up icon (boost bottle) above large circular BOOST button with charge arc"
+    }
+  ],
+
+  "colors": [
+    {
+      "id": "LIT-COLOR-001",
+      "category": "color",
+      "entity": "player_jetski",
+      "part": "body_primary",
+      "value": "green",
+      "hex": null,
+      "source": "screenshot:center foreground player jetski + implementation.md:14",
+      "cfg_path": "CFG.player.colors.bodyPrimary",
+      "notes": "Bright lime/neon green main body of player jet-ski. Exact hex not specified; marked ambiguous."
+    },
+    {
+      "id": "LIT-COLOR-002",
+      "category": "color",
+      "entity": "player_jetski",
+      "part": "body_secondary",
+      "value": "yellow",
+      "hex": null,
+      "source": "screenshot:center foreground + implementation.md:14",
+      "cfg_path": "CFG.player.colors.bodySecondary",
+      "notes": "Yellow accents on the green player jet-ski"
+    },
+    {
+      "id": "LIT-COLOR-003",
+      "category": "color",
+      "entity": "rival_jetski",
+      "part": "body_primary",
+      "value": "purple",
+      "hex": null,
+      "source": "screenshot:rival ahead of player + implementation.md:15",
+      "cfg_path": "CFG.rivals.colors.primary",
+      "notes": "Purple rival jet-ski visible ahead of player"
+    },
+    {
+      "id": "LIT-COLOR-004",
+      "category": "color",
+      "entity": "track_walls",
+      "part": "tube_body",
+      "value": "orange/red",
+      "hex": null,
+      "source": "screenshot:track walls (left + right tube rails) + implementation.md:12,212",
+      "cfg_path": "CFG.track.colors.wallTube",
+      "notes": "Saturated orange-red tube rails on both sides of the slide; low roughness, slight emissive for bloom"
+    },
+    {
+      "id": "LIT-COLOR-005",
+      "category": "color",
+      "entity": "water",
+      "part": "surface",
+      "value": "turquoise",
+      "hex": null,
+      "source": "instruction.md:193 + instruction.md:258 + implementation.md:13",
+      "cfg_path": "CFG.water.colors.surface",
+      "notes": "Turquoise water both in the slide channel and in the surrounding lagoon/skybox reflections"
+    },
+    {
+      "id": "LIT-COLOR-006",
+      "category": "color",
+      "entity": "water",
+      "part": "foam",
+      "value": "white",
+      "hex": null,
+      "source": "screenshot:foam stripes along slide direction + implementation.md:13",
+      "cfg_path": "CFG.water.colors.foam",
+      "notes": "White foam stripes aligned with movement direction, rendered via smoothstep periodic pattern"
+    },
+    {
+      "id": "LIT-COLOR-007",
+      "category": "color",
+      "entity": "sunlight",
+      "part": "directional",
+      "value": "#fff3d6",
+      "hex": "#fff3d6",
+      "source": "implementation.md:53",
+      "cfg_path": "CFG.lighting.directional.color",
+      "notes": "Warm sun color for the DirectionalLight"
+    },
+    {
+      "id": "LIT-COLOR-008",
+      "category": "color",
+      "entity": "environment",
+      "part": "palette",
+      "value": "turquoise, green, orange",
+      "hex": null,
+      "source": "instruction.md:258",
+      "cfg_path": "CFG.visual.palette",
+      "notes": "Bright tropical palette mandated by spec (turquoise, green, orange)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "LIT-DIM-001",
+      "category": "dimension",
+      "entity": "camera",
+      "property": "fov",
+      "value": 60,
+      "unit": "deg",
+      "source": "implementation.md:50",
+      "cfg_path": "CFG.camera.fov",
+      "notes": "PerspectiveCamera field of view"
+    },
+    {
+      "id": "LIT-DIM-002",
+      "category": "dimension",
+      "entity": "camera",
+      "property": "follow_offset",
+      "value": [0, 3.5, 7],
+      "unit": "world_units",
+      "source": "implementation.md:50",
+      "cfg_path": "CFG.camera.followOffset",
+      "notes": "Offset (x, y, z) behind player; was pixel-like in spec but applies as world units in 3D scene"
+    },
+    {
+      "id": "LIT-DIM-003",
+      "category": "dimension",
+      "entity": "track_wall_tube",
+      "property": "radius",
+      "value": "W*0.18",
+      "unit": "world_units",
+      "source": "implementation.md:67",
+      "cfg_path": "CFG.track.wallTubeRadius",
+      "notes": "Tube radius expressed as 0.18 of slide width W"
+    },
+    {
+      "id": "LIT-DIM-004",
+      "category": "dimension",
+      "entity": "renderer",
+      "property": "dpr_cap_max",
+      "value": 2,
+      "unit": "ratio",
+      "source": "implementation.md:193",
+      "cfg_path": "CFG.graphics.dprCap",
+      "notes": "min(devicePixelRatio, 2)"
+    },
+    {
+      "id": "LIT-DIM-005",
+      "category": "dimension",
+      "entity": "performance",
+      "property": "draw_calls_target",
+      "value": 150,
+      "unit": "count",
+      "source": "implementation.md:196",
+      "cfg_path": "CFG.performance.drawCallsMax",
+      "notes": "Target < 150 draw calls at 60 fps"
+    }
+  ],
+
+  "renderingSettings": [
+    {
+      "id": "LIT-RENDER-001",
+      "category": "gameplay",
+      "entity": "renderer",
+      "property": "antialias",
+      "value": true,
+      "source": "implementation.md:37",
+      "cfg_path": "CFG.renderer.antialias",
+      "notes": "WebGLRenderer antialias enabled"
+    },
+    {
+      "id": "LIT-RENDER-002",
+      "category": "gameplay",
+      "entity": "renderer",
+      "property": "outputColorSpace",
+      "value": "SRGBColorSpace",
+      "source": "implementation.md:37",
+      "cfg_path": "CFG.renderer.outputColorSpace",
+      "notes": "THREE.SRGBColorSpace"
+    },
+    {
+      "id": "LIT-RENDER-003",
+      "category": "gameplay",
+      "entity": "renderer",
+      "property": "toneMapping",
+      "value": "ACESFilmicToneMapping",
+      "source": "implementation.md:37",
+      "cfg_path": "CFG.renderer.toneMapping",
+      "notes": "THREE.ACESFilmicToneMapping"
+    },
+    {
+      "id": "LIT-RENDER-004",
+      "category": "gameplay",
+      "entity": "renderer",
+      "property": "toneMappingExposure",
+      "value": 1.1,
+      "source": "implementation.md:37",
+      "cfg_path": "CFG.renderer.toneMappingExposure",
+      "notes": "Approximately 1.1"
+    },
+    {
+      "id": "LIT-RENDER-005",
+      "category": "gameplay",
+      "entity": "renderer",
+      "property": "shadowMapType",
+      "value": "PCFSoftShadowMap",
+      "source": "implementation.md:56",
+      "cfg_path": "CFG.renderer.shadowMapType",
+      "notes": "THREE.PCFSoftShadowMap for sun shadows"
+    }
+  ],
+
+  "lighting": [
+    {
+      "id": "LIT-LIGHT-001",
+      "category": "gameplay",
+      "entity": "DirectionalLight",
+      "property": "intensity",
+      "value": 2.5,
+      "source": "implementation.md:53",
+      "cfg_path": "CFG.lighting.directional.intensity",
+      "notes": "Approximately 2.5, sun from upper-side angle"
+    },
+    {
+      "id": "LIT-LIGHT-002",
+      "category": "gameplay",
+      "entity": "DirectionalLight",
+      "property": "color",
+      "value": "#fff3d6",
+      "source": "implementation.md:53",
+      "cfg_path": "CFG.lighting.directional.color",
+      "notes": "Warm sun tint"
+    },
+    {
+      "id": "LIT-LIGHT-003",
+      "category": "gameplay",
+      "entity": "HemisphereLight",
+      "property": "intensity",
+      "value": 0.6,
+      "source": "implementation.md:54",
+      "cfg_path": "CFG.lighting.hemisphere.intensity",
+      "notes": "Sky turquoise / ground sandy, approximately 0.6"
+    },
+    {
+      "id": "LIT-LIGHT-004",
+      "category": "gameplay",
+      "entity": "AmbientLight",
+      "property": "role",
+      "value": "weak_fill",
+      "source": "implementation.md:55",
+      "cfg_path": "CFG.lighting.ambient.role",
+      "notes": "Weak fill light (exact intensity not specified)"
+    },
+    {
+      "id": "LIT-LIGHT-005",
+      "category": "gameplay",
+      "entity": "lighting_set",
+      "property": "components",
+      "value": ["DirectionalLight", "AmbientLight", "HemisphereLight"],
+      "source": "instruction.md:206-208",
+      "cfg_path": "CFG.lighting.components",
+      "notes": "Mandatory lighting trio per instruction.md"
+    }
+  ],
+
+  "postProcessing": [
+    {
+      "id": "LIT-PP-001",
+      "category": "gameplay",
+      "entity": "Bloom",
+      "property": "enabled",
+      "value": true,
+      "source": "instruction.md:224",
+      "cfg_path": "CFG.postprocessing.bloom.enabled",
+      "notes": "Mandatory; glow on highlights (water sparkles, wall tube sheen)"
+    },
+    {
+      "id": "LIT-PP-002",
+      "category": "gameplay",
+      "entity": "Bloom",
+      "property": "luminanceThreshold",
+      "value": 0.7,
+      "source": "implementation.md:137",
+      "cfg_path": "CFG.postprocessing.bloom.luminanceThreshold",
+      "notes": "Approximately 0.7"
+    },
+    {
+      "id": "LIT-PP-003",
+      "category": "gameplay",
+      "entity": "Bloom",
+      "property": "intensity",
+      "value": 1.2,
+      "source": "implementation.md:137",
+      "cfg_path": "CFG.postprocessing.bloom.intensity",
+      "notes": "Approximately 1.2"
+    },
+    {
+      "id": "LIT-PP-004",
+      "category": "gameplay",
+      "entity": "Bloom",
+      "property": "radius",
+      "value": 0.6,
+      "source": "implementation.md:137",
+      "cfg_path": "CFG.postprocessing.bloom.radius",
+      "notes": "Approximately 0.6"
+    },
+    {
+      "id": "LIT-PP-005",
+      "category": "gameplay",
+      "entity": "ColorGrading_HueSaturation",
+      "property": "saturation_delta",
+      "value": 0.25,
+      "source": "implementation.md:139",
+      "cfg_path": "CFG.postprocessing.colorGrading.saturation",
+      "notes": "+0.25 saturation via HueSaturationEffect"
+    },
+    {
+      "id": "LIT-PP-006",
+      "category": "gameplay",
+      "entity": "ColorGrading_BrightnessContrast",
+      "property": "contrast_delta",
+      "value": 0.15,
+      "source": "implementation.md:140",
+      "cfg_path": "CFG.postprocessing.colorGrading.contrast",
+      "notes": "+0.15 contrast via BrightnessContrastEffect"
+    },
+    {
+      "id": "LIT-PP-007",
+      "category": "gameplay",
+      "entity": "Vignette",
+      "property": "strength",
+      "value": "weak",
+      "source": "implementation.md:141",
+      "cfg_path": "CFG.postprocessing.vignette.strength",
+      "notes": "Weak vignette; exact numeric not specified"
+    },
+    {
+      "id": "LIT-PP-008",
+      "category": "gameplay",
+      "entity": "Glitch",
+      "property": "optional",
+      "value": true,
+      "source": "instruction.md:231 + implementation.md:142",
+      "cfg_path": "CFG.postprocessing.glitch.optional",
+      "notes": "Optional slice shader, triggered on boost/crash only"
+    },
+    {
+      "id": "LIT-PP-009",
+      "category": "gameplay",
+      "entity": "postprocessing_pipeline",
+      "property": "order",
+      "value": ["Bloom", "ColorGrading", "Glitch(optional)"],
+      "source": "instruction.md:220-231",
+      "cfg_path": "CFG.postprocessing.pipeline",
+      "notes": "Mandatory pipeline order per instruction.md"
+    }
+  ],
+
+  "trackFeatures": [
+    {
+      "id": "LIT-TRACK-001",
+      "category": "gameplay",
+      "entity": "track",
+      "property": "curve_type",
+      "value": "CatmullRomCurve3",
+      "source": "instruction.md:153 + implementation.md:65",
+      "cfg_path": "CFG.track.curveType",
+      "notes": "Spline-based track using THREE.CatmullRomCurve3"
+    },
+    {
+      "id": "LIT-TRACK-002",
+      "category": "gameplay",
+      "entity": "track",
+      "property": "features",
+      "value": ["smooth_curves", "vertical_drops", "banking", "tube_sections"],
+      "source": "instruction.md:157-161",
+      "cfg_path": "CFG.track.features",
+      "notes": "All four features required"
+    },
+    {
+      "id": "LIT-TRACK-003",
+      "category": "gameplay",
+      "entity": "track_walls",
+      "property": "geometry",
+      "value": "TubeGeometry",
+      "source": "implementation.md:67",
+      "cfg_path": "CFG.track.wall.geometry",
+      "notes": "Left/right tube walls built with THREE.TubeGeometry"
+    },
+    {
+      "id": "LIT-TRACK-004",
+      "category": "gameplay",
+      "entity": "track",
+      "property": "frame_method",
+      "value": "computeFrenetFrames",
+      "source": "implementation.md:66",
+      "cfg_path": "CFG.track.frameMethod",
+      "notes": "curve.computeFrenetFrames for sampling along curve"
+    },
+    {
+      "id": "LIT-TRACK-005",
+      "category": "gameplay",
+      "entity": "track",
+      "property": "banking",
+      "value": "tilted_turns",
+      "source": "instruction.md:160",
+      "cfg_path": "CFG.track.banking",
+      "notes": "Roll angles on control points, camera/player tilt with track"
+    },
+    {
+      "id": "LIT-TRACK-006",
+      "category": "gameplay",
+      "entity": "track",
+      "property": "vertical_drops",
+      "value": true,
+      "source": "instruction.md:159",
+      "cfg_path": "CFG.track.verticalDrops",
+      "notes": "Sharp drop control points that trigger airborne physics"
+    }
+  ],
+
+  "waterShader": [
+    {
+      "id": "LIT-WATER-001",
+      "category": "gameplay",
+      "entity": "water_shader",
+      "property": "uv_distortion_x",
+      "value": "uv.x += sin(time + uv.y * frequency) * amplitude",
+      "source": "instruction.md:187",
+      "cfg_path": "CFG.water.shader.uvDistortionX",
+      "notes": "Verbatim distortion formula from spec"
+    },
+    {
+      "id": "LIT-WATER-002",
+      "category": "gameplay",
+      "entity": "water_shader",
+      "property": "uv_distortion_y",
+      "value": "uv.y += cos(time + uv.x * frequency) * amplitude",
+      "source": "instruction.md:188",
+      "cfg_path": "CFG.water.shader.uvDistortionY",
+      "notes": "Verbatim distortion formula from spec"
+    },
+    {
+      "id": "LIT-WATER-003",
+      "category": "gameplay",
+      "entity": "water_shader",
+      "property": "uniforms",
+      "value": ["uTime", "uColorShallow", "uColorDeep", "uFoamIntensity"],
+      "source": "implementation.md:84",
+      "cfg_path": "CFG.water.shader.uniforms",
+      "notes": "Required uniform names for the water ShaderMaterial"
+    }
+  ],
+
+  "glitchShader": [
+    {
+      "id": "LIT-GLITCH-001",
+      "category": "gameplay",
+      "entity": "glitch_shader",
+      "property": "slice_formula",
+      "value": "slice = floor(uv.y * N)",
+      "source": "instruction.md:240",
+      "cfg_path": "CFG.glitch.shader.sliceFormula",
+      "notes": "Verbatim from spec"
+    },
+    {
+      "id": "LIT-GLITCH-002",
+      "category": "gameplay",
+      "entity": "glitch_shader",
+      "property": "offset_formula",
+      "value": "offset = sin(slice + time) * intensity",
+      "source": "instruction.md:241",
+      "cfg_path": "CFG.glitch.shader.offsetFormula",
+      "notes": "Verbatim from spec"
+    },
+    {
+      "id": "LIT-GLITCH-003",
+      "category": "gameplay",
+      "entity": "glitch_shader",
+      "property": "apply_formula",
+      "value": "uv.x += offset",
+      "source": "instruction.md:242",
+      "cfg_path": "CFG.glitch.shader.applyFormula",
+      "notes": "Verbatim from spec"
+    }
+  ],
+
+  "gameplayValues": [
+    {
+      "id": "LIT-GAME-001",
+      "category": "gameplay",
+      "entity": "race",
+      "property": "total_racers",
+      "value": 6,
+      "source": "screenshot:'2/6' HUD + implementation.md:126",
+      "cfg_path": "CFG.race.totalRacers",
+      "notes": "Derived from HUD 'POS 2/6'. Total of 6 racers (player + 5 AI)"
+    },
+    {
+      "id": "LIT-GAME-002",
+      "category": "gameplay",
+      "entity": "race",
+      "property": "ai_rival_count",
+      "value": 5,
+      "source": "implementation.md:126",
+      "cfg_path": "CFG.race.aiRivalCount",
+      "notes": "5 AI rivals so total with player equals 6"
+    },
+    {
+      "id": "LIT-GAME-003",
+      "category": "gameplay",
+      "entity": "rival_jetski_colors",
+      "property": "palette",
+      "value": ["purple", "red", "blue", "yellow", "turquoise"],
+      "source": "implementation.md:126",
+      "cfg_path": "CFG.rivals.colorPalette",
+      "notes": "Five distinct rival colors listed in implementation.md"
+    },
+    {
+      "id": "LIT-GAME-004",
+      "category": "gameplay",
+      "entity": "race",
+      "property": "min_visible_rivals",
+      "value": 1,
+      "source": "screenshot:one purple rival visible ahead + implementation.md:15",
+      "cfg_path": "CFG.race.minVisibleRivals",
+      "notes": "At least one visible rival (purple) ahead of player at scene start"
+    },
+    {
+      "id": "LIT-GAME-005",
+      "category": "gameplay",
+      "entity": "player",
+      "property": "seed_position",
+      "value": 2,
+      "source": "screenshot:'2/6' HUD",
+      "cfg_path": "CFG.player.seedPosition",
+      "notes": "Player begins race in 2nd place for the reference frame"
+    },
+    {
+      "id": "LIT-GAME-006",
+      "category": "gameplay",
+      "entity": "player",
+      "property": "controls",
+      "value": ["A", "D", "ArrowLeft", "ArrowRight", "Space"],
+      "source": "implementation.md:96",
+      "cfg_path": "CFG.controls.keys",
+      "notes": "A/D and arrow keys for lateral, Space for boost"
+    },
+    {
+      "id": "LIT-GAME-007",
+      "category": "gameplay",
+      "entity": "player",
+      "property": "lateral_offset_range",
+      "value": [-1, 1],
+      "source": "implementation.md:95",
+      "cfg_path": "CFG.player.lateralOffsetRange",
+      "notes": "Normalized lateral offset clamped to [-1, +1]"
+    },
+    {
+      "id": "LIT-GAME-008",
+      "category": "gameplay",
+      "entity": "target_fps",
+      "property": "value",
+      "value": 60,
+      "unit": "fps",
+      "source": "implementation.md:196 + implementation.md:220",
+      "cfg_path": "CFG.performance.targetFps",
+      "notes": "Stable 60 fps target on mid-range laptop"
+    }
+  ],
+
+  "particles": [
+    {
+      "id": "LIT-FX-001",
+      "category": "timing",
+      "entity": "water_trail_particle",
+      "property": "lifetime_min",
+      "value": 300,
+      "unit": "ms",
+      "originalValue": "0.3",
+      "originalUnit": "s",
+      "source": "implementation.md:150",
+      "cfg_path": "CFG.fx.waterTrail.lifetimeMin",
+      "notes": "Particles live 0.3–0.6 s"
+    },
+    {
+      "id": "LIT-FX-002",
+      "category": "timing",
+      "entity": "water_trail_particle",
+      "property": "lifetime_max",
+      "value": 600,
+      "unit": "ms",
+      "originalValue": "0.6",
+      "originalUnit": "s",
+      "source": "implementation.md:150",
+      "cfg_path": "CFG.fx.waterTrail.lifetimeMax",
+      "notes": "Particles live 0.3–0.6 s"
+    }
+  ],
+
+  "environment": [
+    {
+      "id": "LIT-ENV-001",
+      "category": "gameplay",
+      "entity": "environment_left",
+      "property": "features",
+      "value": ["lagoon", "palm_trees", "stilted_hut"],
+      "source": "screenshot:left bank + implementation.md:16",
+      "cfg_path": "CFG.environment.leftSide",
+      "notes": "Left bank: lagoon with palms and a hut on stilts"
+    },
+    {
+      "id": "LIT-ENV-002",
+      "category": "gameplay",
+      "entity": "environment_right",
+      "property": "features",
+      "value": ["cliff", "waterfalls", "tiki_huts", "palm_trees", "flowers"],
+      "source": "screenshot:right bank + implementation.md:17",
+      "cfg_path": "CFG.environment.rightSide",
+      "notes": "Right bank: cliff with waterfalls, tiki huts, palms, flowers"
+    },
+    {
+      "id": "LIT-ENV-003",
+      "category": "gameplay",
+      "entity": "skybox",
+      "property": "description",
+      "value": "clear tropical sky with clouds",
+      "source": "implementation.md:18",
+      "cfg_path": "CFG.environment.skybox",
+      "notes": "Bright tropical sky backdrop"
+    },
+    {
+      "id": "LIT-ENV-004",
+      "category": "gameplay",
+      "entity": "props",
+      "property": "instanced_types",
+      "value": ["palm", "rock", "tiki_hut", "flower_bush"],
+      "source": "implementation.md:113-114",
+      "cfg_path": "CFG.environment.instancedProps",
+      "notes": "Props rendered with InstancedMesh for draw call savings"
+    }
+  ],
+
+  "storageKeys": [],
+
+  "events": [
+    {
+      "id": "LIT-EVT-001",
+      "category": "gameplay",
+      "entity": "EventBus",
+      "property": "channels",
+      "value": ["time", "position", "boostCharge", "airTime", "playerT", "rivalsT"],
+      "source": "implementation.md:170",
+      "cfg_path": "CFG.events.channels",
+      "notes": "EventBus channels consumed by HUD DOM overlay"
+    }
+  ],
+
+  "contradictions": [],
+
+  "stats": {
+    "totalLiterals": 68,
+    "uiStrings": 8,
+    "hudLayout": 4,
+    "colors": 8,
+    "dimensions": 5,
+    "renderingSettings": 5,
+    "lighting": 5,
+    "postProcessing": 9,
+    "trackFeatures": 6,
+    "waterShader": 3,
+    "glitchShader": 3,
+    "gameplayValues": 8,
+    "particles": 2,
+    "environment": 4,
+    "storageKeys": 0,
+    "events": 1,
+    "contradictionsFound": 0
+  }
+}
