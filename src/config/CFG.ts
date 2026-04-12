@@ -149,30 +149,30 @@ export const CFG = {
   },
   models: {
     jetski: {
-      url: '/assets/models/kawasaki_310xultra_jet_ski.glb',
+      url: 'assets/models/kawasaki_310xultra_jet_ski.glb',
       targetLength: 3.0,
       rotationYOffset: 0,
       yOffset: -0.1,
     },
     driver: {
-      url: '/assets/models/race_driver.glb',
+      url: 'assets/models/race_driver.glb',
       targetHeight: 2.2,
-      yOffset: 1.0,        // sit above the jetski seat
+      yOffset: 1.0,
     },
     palm: {
-      url: '/assets/models/Palm Tree.glb',
-      targetHeight: 36.0, // total tree height in world units (×2)
+      url: 'assets/models/Palm Tree.glb',
+      targetHeight: 36.0,
     },
     baobab: {
-      url: '/assets/models/Boab.glb',
+      url: 'assets/models/Boab.glb',
       targetHeight: 16.0,
     },
     mountain: {
-      url: '/assets/models/Mountain.glb',
-      targetHeight: 22.0, // total height in world units
+      url: 'assets/models/Mountain.glb',
+      targetHeight: 22.0,
     },
   },
   textures: {
-    waterNormals: '/assets/textures/waternormals.jpg',
+    waterNormals: 'assets/textures/waternormals.jpg',
   },
 };
