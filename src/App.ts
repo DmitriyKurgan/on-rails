@@ -13,6 +13,7 @@ import { buildSkybox } from '@/world/Skybox';
 import { Props } from '@/world/Props';
 import { Player } from '@/entities/Player/Player';
 import { RivalManager } from '@/entities/Rivals/RivalManager';
+import { buildEndWaterfall } from '@/world/EndWaterfall';
 import { createComposer } from '@/effects/postprocessing/Composer';
 import { WaterTrail } from '@/effects/particles/WaterTrail';
 import { Hud } from '@/hud/Hud';
@@ -56,6 +57,9 @@ export class App {
 
     // Props consumes the primed palm via clonePalm() inside AssetLoader cache.
     new Props(scene, road);
+
+    // End-of-track waterfall + lake
+    const endFall = buildEndWaterfall(scene, waterNormalMap);
 
     const player = new Player(road, playerMesh ?? undefined);
     scene.add(player.group);
@@ -154,6 +158,7 @@ export class App {
           Math.max(0, (player.speed / cruiseSpeed - 1) / (CFG.player.boostMultiplier - 1)),
         );
         tickWaterMaterial(waterMat, dt, speedNorm);
+        endFall.tick(dt);
         follow.update(dt, player.t, player.position, road);
 
         follow.setFov(player.boostActive ? CFG.camera.boostFov : CFG.camera.fov);
