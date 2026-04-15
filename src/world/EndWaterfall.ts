@@ -74,6 +74,8 @@ export interface EndWaterfallHandle {
   tick(dt: number): void;
 }
 
+export const FALL_HEIGHT = 260;      // total drop from track end to lake surface
+
 export function buildEndWaterfall(
   scene: Scene,
   waterNormalMap: Texture | null,
@@ -81,9 +83,9 @@ export function buildEndWaterfall(
   const finishPoint = TRACK_POINTS[TRACK_POINTS.length - 1].pos;
 
   // === Waterfall plane ===
-  // 80u wide, 220u tall, positioned at the end of the track and falling down.
-  const fallW = 80;
-  const fallH = 220;
+  // Wide, tall, exactly at the track exit plane, cascading down to the lake.
+  const fallW = 120;
+  const fallH = FALL_HEIGHT;
   const fallMat = new ShaderMaterial({
     vertexShader: WATERFALL_VERT,
     fragmentShader: WATERFALL_FRAG,
@@ -97,18 +99,16 @@ export function buildEndWaterfall(
     transparent: false,
   });
   const fall = new Mesh(new PlaneGeometry(fallW, fallH, 4, 32), fallMat);
-  // Place plane vertically: top edge aligned with finish point, falling down
-  fall.position.set(finishPoint.x, finishPoint.y - fallH / 2 + 5, finishPoint.z - 30);
-  // PlaneGeometry default: in XY plane facing +Z. We need it vertical and
-  // facing back toward the camera (which approaches from +Z).
-  // Default plane already faces +Z, no rotation needed.
+  // Plane at track end. Top edge = track finish Y. Plane faces the camera
+  // approaching along -Z direction (player comes from +Z looking -Z).
+  fall.position.set(finishPoint.x, finishPoint.y - fallH / 2, finishPoint.z - 40);
   scene.add(fall);
 
-  // === Lake (large turquoise water plane below the waterfall) ===
+  // === Lake (huge turquoise water plane) ===
   const lakeMat = createWaterMaterial({ normalMap: waterNormalMap });
-  const lake = new Mesh(new PlaneGeometry(400, 400, 64, 64), lakeMat);
-  lake.rotation.x = -Math.PI / 2; // horizontal
-  lake.position.set(finishPoint.x, finishPoint.y - fallH + 8, finishPoint.z - 60);
+  const lake = new Mesh(new PlaneGeometry(1200, 1200, 96, 96), lakeMat);
+  lake.rotation.x = -Math.PI / 2;
+  lake.position.set(finishPoint.x, finishPoint.y - FALL_HEIGHT, finishPoint.z - 300);
   scene.add(lake);
 
   // === Distant haze sphere — gives a far-shore impression ===
@@ -123,12 +123,11 @@ export function buildEndWaterfall(
   };
 }
 
-// Small helper to keep types tidy if external code needs the falling lake plane
-// position as a "world out of bounds" marker.
+/** Y coordinate of the lake surface. Player transitions to lake mode
+ * when its Y drops to this value. */
 export function endLakeY(): number {
   const finishPoint = TRACK_POINTS[TRACK_POINTS.length - 1].pos;
-  return finishPoint.y - 220 + 8;
+  return finishPoint.y - FALL_HEIGHT;
 }
 
-// Re-export for App.ts — no need but keeps imports clean
 export { Vector3 };

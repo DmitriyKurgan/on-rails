@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import { CFG } from '@/config';
 import { createEngine } from '@/core/Engine';
 import { createGameLoop } from '@/core/GameLoop';
@@ -159,7 +160,25 @@ export class App {
         );
         tickWaterMaterial(waterMat, dt, speedNorm);
         endFall.tick(dt);
-        follow.update(dt, player.t, player.position, road);
+        // In lake mode, synthesize a road-like sampler from the player's own
+        // heading so the camera follows the direction the jetski is pointing
+        // rather than the fixed finish-line tangent.
+        if (player.state === 'lake' || player.state === 'falling') {
+          const h = (player as unknown as { lakeHeading: number }).lakeHeading ?? Math.PI;
+          const tangent = new Vector3(Math.sin(h), 0, -Math.cos(h));
+          const normal = new Vector3(0, 1, 0);
+          const binormal = new Vector3().crossVectors(tangent, normal).normalize();
+          const syntheticRoad = {
+            getPointAt: (_t: number, out?: Vector3) => {
+              const v = out ?? new Vector3();
+              return v.copy(player.position).addScaledVector(tangent, 6);
+            },
+            getFrameAt: () => ({ tangent, normal, binormal }),
+          };
+          follow.update(dt, 1, player.position, syntheticRoad);
+        } else {
+          follow.update(dt, player.t, player.position, road);
+        }
 
         follow.setFov(player.boostActive ? CFG.camera.boostFov : CFG.camera.fov);
         follow.setRoll(-player.steerYaw * CFG.camera.steerRollDeg);

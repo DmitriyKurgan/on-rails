@@ -1,10 +1,11 @@
 import { Group, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import { CFG } from '@/config';
 import { buildJetskiMesh } from '@/entities/Jetski/buildJetskiMesh';
+import { endLakeY } from '@/world/EndWaterfall';
 import type { Road } from '@/world/Road';
 import type { Input } from '@/core/Input';
 
-export type PlayerState = 'riding' | 'airborne';
+export type PlayerState = 'riding' | 'airborne' | 'falling' | 'lake';
 
 export class Player {
   readonly group: Group;
@@ -15,12 +16,18 @@ export class Player {
   t = CFG.rivals.playerStartT;
   lateralOffset = 0;
   lateralTarget = 0;
-  steerYaw = 0;          // smoothed -1..+1 steer input for nose yaw
+  steerYaw = 0;
   speed = CFG.track.baseSpeed * CFG.player.baseSpeedMul;
   boostCharge = 0.5;
   boostActive = false;
   airTime = 0;
   airTimeLast = 0;
+
+  // Lake / falling mode state
+  private fallVelY = 0;
+  private fallVelZ = -10;
+  private lakeHeading = 0;     // radians, forward direction in lake mode
+  private lakeSpeed = 0;
 
   private readonly tmpLook = new Matrix4();
   private readonly tmpQuat = new Quaternion();
@@ -41,6 +48,15 @@ export class Player {
   }
 
   update(dt: number, input: Input): void {
+    if (this.state === 'falling') {
+      this.updateFalling(dt);
+      return;
+    }
+    if (this.state === 'lake') {
+      this.updateLake(dt, input);
+      return;
+    }
+
     // Steering intent — smooth-damped, never a snap
     const steerInput = (input.right ? 1 : 0) - (input.left ? 1 : 0);
     this.lateralTarget = MathUtils.clamp(
@@ -79,7 +95,15 @@ export class Player {
 
     // Advance along spline
     this.t += (this.speed * dt) / this.road.length;
-    if (this.t > 1) this.t = 1;
+    if (this.t >= 1) {
+      // Reached end of track — detach and start falling off the cliff
+      this.t = 1;
+      this.state = 'falling';
+      this.fallVelY = 0;
+      this.fallVelZ = -Math.max(this.speed, 15);
+      this.road.getPointAt(1, this.position);
+      return;
+    }
 
     // Compute world position from curve + lateral binormal offset
     const frame = this.road.getFrameAt(this.t);
@@ -143,5 +167,65 @@ export class Player {
 
   addBoostCharge(amount: number): void {
     this.boostCharge = Math.min(1, this.boostCharge + amount);
+  }
+
+  /**
+   * Ballistic fall off the end of the track down to the lake surface.
+   * Accumulates gravity while continuing forward along -Z. Transitions to
+   * 'lake' state once Y reaches the lake surface.
+   */
+  private updateFalling(dt: number): void {
+    this.fallVelY -= 40 * dt; // heavier-than-real gravity for punchy fall
+    this.position.y += this.fallVelY * dt;
+    this.position.z += this.fallVelZ * dt;
+
+    // Pitch the nose down proportional to fall velocity for drama
+    const pitch = MathUtils.clamp(this.fallVelY * 0.05, -1.0, 0);
+    this.tmpTarget.set(this.position.x, this.position.y + Math.sin(pitch), this.position.z - Math.cos(pitch));
+    this.tmpLook.lookAt(this.position, this.tmpTarget, this.tmpWorldUp);
+    this.tmpQuat.setFromRotationMatrix(this.tmpLook);
+    this.group.quaternion.slerp(this.tmpQuat, 0.18);
+
+    const lakeY = endLakeY();
+    if (this.position.y <= lakeY) {
+      this.position.y = lakeY;
+      this.state = 'lake';
+      this.fallVelY = 0;
+      this.lakeHeading = Math.PI; // facing -Z (away from the waterfall)
+      this.lakeSpeed = Math.max(-this.fallVelZ * 0.6, 5);
+    }
+    this.group.position.copy(this.position);
+  }
+
+  /**
+   * Free swimming mode on the lake. A/D rotate the heading, Space accelerates,
+   * no Space decelerates to a stop. Simple planar physics.
+   */
+  private updateLake(dt: number, input: Input): void {
+    const steer = (input.left ? 1 : 0) - (input.right ? 1 : 0);
+    this.lakeHeading += steer * 1.6 * dt;
+
+    if (input.boost) {
+      this.lakeSpeed = Math.min(this.lakeSpeed + 18 * dt, 22);
+    } else {
+      this.lakeSpeed = MathUtils.damp(this.lakeSpeed, 0, 1.2, dt);
+    }
+
+    // Move in heading direction. heading=π points toward -Z (away from cliff).
+    this.position.x += Math.sin(this.lakeHeading) * this.lakeSpeed * dt;
+    this.position.z -= Math.cos(this.lakeHeading) * this.lakeSpeed * dt;
+    this.position.y = endLakeY() + Math.sin(performance.now() * 0.002) * 0.08; // gentle bob
+    this.group.position.copy(this.position);
+
+    // Orientation: rotate mesh around world Y to face heading direction
+    this.tmpQuat.setFromAxisAngle(this.tmpWorldUp, this.lakeHeading);
+    this.group.quaternion.slerp(this.tmpQuat, 0.15);
+
+    // Smooth steer yaw for visual nose tilt
+    this.steerYaw = MathUtils.damp(this.steerYaw, -steer, 5, dt);
+
+    // Keep speed reflected on the HUD
+    this.speed = this.lakeSpeed;
+    this.boostActive = input.boost && this.lakeSpeed > 1;
   }
 }
