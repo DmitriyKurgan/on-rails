@@ -185,3 +185,98 @@ body {
   width: 100%;
   height: 100%;
 }
+
+/* === Race complete overlay === */
+.hud-race-complete {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 22, 38, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.hud-race-card {
+  background: rgba(11, 22, 38, 0.92);
+  border: 2px solid var(--hud-pill-stroke);
+  border-radius: 24px;
+  padding: 36px 48px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  min-width: 320px;
+}
+
+.hud-race-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--hud-text);
+  margin-bottom: 24px;
+}
+
+.hud-race-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.hud-race-stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+}
+
+.hud-race-stats .lbl {
+  font-size: 13px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--hud-text-muted);
+}
+
+.hud-race-stats .val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--hud-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-race-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.hud-race-btn {
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  border: 2px solid var(--hud-pill-stroke);
+  background: rgba(11, 22, 38, 0.6);
+  color: var(--hud-text);
+  cursor: pointer;
+  transition: transform 80ms ease, background 120ms ease;
+}
+
+.hud-race-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.hud-race-btn.primary {
+  background: var(--hud-player-dot);
+  color: #0b1626;
+  border-color: var(--hud-player-dot);
+}
+
+.hud-race-btn.primary:hover {
+  background: #d4ff80;
+}

@@ -2,6 +2,11 @@ import { CFG, UI_FORMATS, UI_STRINGS } from '@/config';
 import type { EventBus } from '@/core/EventBus';
 import type { Road } from '@/world/Road';
 
+export interface RaceCompleteHandlers {
+  onRestart: () => void;
+  onExit: () => void;
+}
+
 export class Hud {
   private readonly root: HTMLElement;
   private readonly posValue: HTMLElement;
@@ -12,6 +17,7 @@ export class Hud {
   private readonly minimapPlayer: SVGCircleElement;
   private readonly minimapRivals: SVGCircleElement[] = [];
   private readonly minimapBounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+  private raceCompleteOverlay: HTMLElement | null = null;
 
   constructor(root: HTMLElement, bus: EventBus, road: Road) {
     this.root = root;
@@ -214,5 +220,59 @@ export class Hud {
         dot.setAttribute('cy', ry.toFixed(1));
       });
     });
+  }
+
+  /** Show the end-of-race overlay with RESTART and EXIT buttons. */
+  showRaceComplete(position: number, total: number, seconds: number, handlers: RaceCompleteHandlers): void {
+    if (this.raceCompleteOverlay) return; // already showing
+
+    const overlay = document.createElement('div');
+    overlay.className = 'hud-race-complete';
+
+    const card = document.createElement('div');
+    card.className = 'hud-race-card';
+
+    const title = document.createElement('div');
+    title.className = 'hud-race-title';
+    title.textContent = 'RACE COMPLETE';
+    card.appendChild(title);
+
+    const stats = document.createElement('div');
+    stats.className = 'hud-race-stats';
+    stats.innerHTML = `
+      <div><span class="lbl">FINAL POSITION</span><span class="val">${UI_FORMATS.posValue(position, total)}</span></div>
+      <div><span class="lbl">TIME</span><span class="val">${UI_FORMATS.timeValue(seconds)}</span></div>
+    `;
+    card.appendChild(stats);
+
+    const buttons = document.createElement('div');
+    buttons.className = 'hud-race-buttons';
+
+    const restartBtn = document.createElement('button');
+    restartBtn.className = 'hud-race-btn primary';
+    restartBtn.textContent = 'RESTART';
+    restartBtn.addEventListener('click', () => {
+      this.hideRaceComplete();
+      handlers.onRestart();
+    });
+
+    const exitBtn = document.createElement('button');
+    exitBtn.className = 'hud-race-btn';
+    exitBtn.textContent = 'EXIT';
+    exitBtn.addEventListener('click', handlers.onExit);
+
+    buttons.append(restartBtn, exitBtn);
+    card.appendChild(buttons);
+
+    overlay.appendChild(card);
+    this.root.appendChild(overlay);
+    this.raceCompleteOverlay = overlay;
+  }
+
+  hideRaceComplete(): void {
+    if (this.raceCompleteOverlay) {
+      this.raceCompleteOverlay.remove();
+      this.raceCompleteOverlay = null;
+    }
   }
 }

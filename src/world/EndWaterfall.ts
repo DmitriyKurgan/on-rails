@@ -3,11 +3,16 @@ import {
   DoubleSide,
   Mesh,
   PlaneGeometry,
+  RingGeometry,
   Scene,
   ShaderMaterial,
+  TorusGeometry,
   Vector3,
 } from 'three';
 import { COLORS, TRACK_POINTS } from '@/config';
+import { clonePalm } from '@/loaders/AssetLoader';
+import { createSandMaterial } from './SandMaterial';
+import { createWallMaterial } from './WallMaterial';
 import { createWaterMaterial, tickWaterMaterial } from './WaterMaterial';
 import type { Texture } from 'three';
 
@@ -103,12 +108,54 @@ export function buildEndWaterfall(
   fall.position.set(finishPoint.x, finishPoint.y - fallH / 2, finishPoint.z - 40);
   scene.add(fall);
 
-  // === Lake (huge turquoise water plane) ===
+  // === Lake (turquoise water plane) ===
   const lakeMat = createWaterMaterial({ normalMap: waterNormalMap });
-  const lake = new Mesh(new PlaneGeometry(1200, 1200, 96, 96), lakeMat);
+  const lakeRadius = 250;          // playable inner area where boundary sits
+  const lakeCenter = new Vector3(finishPoint.x, finishPoint.y - FALL_HEIGHT, finishPoint.z - 200);
+  const lake = new Mesh(new PlaneGeometry(lakeRadius * 2 + 4, lakeRadius * 2 + 4, 64, 64), lakeMat);
   lake.rotation.x = -Math.PI / 2;
-  lake.position.set(finishPoint.x, finishPoint.y - FALL_HEIGHT, finishPoint.z - 300);
+  lake.position.copy(lakeCenter);
   scene.add(lake);
+
+  // === Lake boundary: orange tube wall ring around the playable lake area ===
+  const wallMat = createWallMaterial();
+  // Torus: major radius = lakeRadius, minor radius = wall thickness.
+  const ringWall = new Mesh(
+    new TorusGeometry(lakeRadius, 1.4, 12, 96),
+    wallMat,
+  );
+  ringWall.rotation.x = Math.PI / 2; // lay flat
+  ringWall.position.copy(lakeCenter);
+  ringWall.position.y += 0.6;        // sit just above the water surface
+  scene.add(ringWall);
+
+  // === Beach: sand donut around the wall ring ===
+  const sandMat = createSandMaterial();
+  const beach = new Mesh(
+    new RingGeometry(lakeRadius + 1.8, lakeRadius + 90, 96, 6),
+    sandMat,
+  );
+  beach.rotation.x = -Math.PI / 2;
+  beach.position.copy(lakeCenter);
+  beach.position.y -= 0.05; // just below water plane
+  scene.add(beach);
+
+  // === Palms scattered around the beach ring ===
+  const beachPalmCount = 30;
+  for (let i = 0; i < beachPalmCount; i++) {
+    const palm = clonePalm();
+    if (!palm) break;
+    const angle = (i / beachPalmCount) * Math.PI * 2;
+    const r = lakeRadius + 8 + (i % 3) * 18;
+    palm.position.set(
+      lakeCenter.x + Math.cos(angle) * r,
+      lakeCenter.y - 0.05,
+      lakeCenter.z + Math.sin(angle) * r,
+    );
+    palm.rotation.y = Math.random() * Math.PI * 2;
+    palm.scale.setScalar(0.7 + Math.random() * 0.5);
+    scene.add(palm);
+  }
 
   // === Distant haze sphere — gives a far-shore impression ===
   // (Optional ambient set piece — distant land silhouette)
@@ -128,5 +175,14 @@ export function endLakeY(): number {
   const finishPoint = TRACK_POINTS[TRACK_POINTS.length - 1].pos;
   return finishPoint.y - FALL_HEIGHT;
 }
+
+/** Center of the playable lake area in world space. */
+export function endLakeCenter(): Vector3 {
+  const finishPoint = TRACK_POINTS[TRACK_POINTS.length - 1].pos;
+  return new Vector3(finishPoint.x, finishPoint.y - FALL_HEIGHT, finishPoint.z - 200);
+}
+
+/** Inner radius — player should stay inside this circle. */
+export const LAKE_RADIUS = 250;
 
 export { Vector3 };

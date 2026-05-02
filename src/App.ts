@@ -96,7 +96,26 @@ export class App {
 
     const bus = new EventBus();
     const hud = new Hud(hudRoot, bus, road);
-    void hud;
+
+    // Race-complete state — overlay shown once player enters lake mode
+    let raceCompleteShown = false;
+    const restartRace = () => {
+      player.t = CFG.rivals.playerStartT;
+      player.lateralOffset = 0;
+      player.lateralTarget = 0;
+      player.boostCharge = 0.5;
+      player.airTimeLast = 0;
+      player.state = 'riding';
+      player.position.set(0, 0, 0);
+      for (let i = 0; i < rivals.rivals.length; i++) {
+        rivals.rivals[i].t = CFG.rivals.starts[i].t;
+        rivals.rivals[i].lateral = CFG.rivals.starts[i].lateral;
+      }
+      raceSeconds = 0;
+      finished = false;
+      raceCompleteShown = false;
+      hud.hideRaceComplete();
+    };
 
     const input = new Input();
     input.attach();
@@ -106,22 +125,9 @@ export class App {
     let lastBoost = -1;
     let finished = false;
 
-    // R-key restart — minimal polish per Stage 13.
+    // R-key restart
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyR') {
-        player.t = CFG.rivals.playerStartT;
-        player.lateralOffset = 0;
-        player.lateralTarget = 0;
-        player.boostCharge = 0.5;
-        player.airTimeLast = 0;
-        player.state = 'riding';
-        for (let i = 0; i < rivals.rivals.length; i++) {
-          rivals.rivals[i].t = CFG.rivals.starts[i].t;
-          rivals.rivals[i].lateral = CFG.rivals.starts[i].lateral;
-        }
-        raceSeconds = 0;
-        finished = false;
-      }
+      if (e.code === 'KeyR') restartRace();
     });
 
     // Seed HUD with hero-moment anchors so POS 2/6 shows from frame 0
@@ -137,6 +143,20 @@ export class App {
         if (player.t >= 0.999 && !finished) {
           finished = true;
           bus.emit('race:finish', { position: rivals.playerPosition(player), seconds: raceSeconds });
+        }
+
+        // When player has fallen into the lake, show the end-of-race overlay
+        if (player.state === 'lake' && !raceCompleteShown) {
+          raceCompleteShown = true;
+          hud.showRaceComplete(
+            rivals.playerPosition(player),
+            CFG.race.totalRacers,
+            raceSeconds,
+            {
+              onRestart: () => restartRace(),
+              onExit: () => window.close(),
+            },
+          );
         }
 
         player.update(dt, input);
@@ -171,9 +191,9 @@ export class App {
           const syntheticRoad = {
             getPointAt: (_t: number, out?: Vector3) => {
               const v = out ?? new Vector3();
-              // Look-at target lifted 12u up so the camera tilts toward the
-              // tall waterfall instead of staring at the lake horizon.
-              return v.copy(player.position).addScaledVector(tangent, 6).add(new Vector3(0, 12, 0));
+              // Modest lift so we look slightly above the horizon — enough
+              // to see the waterfall ahead without staring straight up.
+              return v.copy(player.position).addScaledVector(tangent, 8).add(new Vector3(0, 3, 0));
             },
             getFrameAt: () => ({ tangent, normal, binormal }),
           };

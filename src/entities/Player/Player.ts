@@ -1,7 +1,7 @@
 import { Group, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import { CFG } from '@/config';
 import { buildJetskiMesh } from '@/entities/Jetski/buildJetskiMesh';
-import { endLakeY } from '@/world/EndWaterfall';
+import { endLakeCenter, endLakeY, LAKE_RADIUS } from '@/world/EndWaterfall';
 import type { Road } from '@/world/Road';
 import type { Input } from '@/core/Input';
 
@@ -217,6 +217,20 @@ export class Player {
     this.position.x += Math.sin(this.lakeHeading) * this.lakeSpeed * dt;
     this.position.z -= Math.cos(this.lakeHeading) * this.lakeSpeed * dt;
     this.position.y = endLakeY() + Math.sin(performance.now() * 0.002) * 0.08; // gentle bob
+
+    // Clamp player to inside the lake boundary (radius around lake center)
+    const lc = endLakeCenter();
+    const dx = this.position.x - lc.x;
+    const dz = this.position.z - lc.z;
+    const distSq = dx * dx + dz * dz;
+    const maxR = LAKE_RADIUS - 2.5;
+    if (distSq > maxR * maxR) {
+      const dist = Math.sqrt(distSq);
+      this.position.x = lc.x + (dx / dist) * maxR;
+      this.position.z = lc.z + (dz / dist) * maxR;
+      this.lakeSpeed *= 0.5; // soft bounce-back
+    }
+
     this.group.position.copy(this.position);
 
     // Orientation: rotate mesh around world Y to face heading direction
