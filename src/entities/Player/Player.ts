@@ -175,12 +175,11 @@ export class Player {
    * 'lake' state once Y reaches the lake surface.
    */
   private updateFalling(dt: number): void {
-    this.fallVelY -= 40 * dt; // heavier-than-real gravity for punchy fall
+    this.fallVelY -= 30 * dt; // gravity
     this.position.y += this.fallVelY * dt;
-    this.position.z += this.fallVelZ * dt;
+    this.position.z += this.fallVelZ * dt * 0.4; // slow forward drift so we land near waterfall
 
-    // Pitch the nose down proportional to fall velocity for drama
-    const pitch = MathUtils.clamp(this.fallVelY * 0.05, -1.0, 0);
+    const pitch = MathUtils.clamp(this.fallVelY * 0.04, -1.0, 0);
     this.tmpTarget.set(this.position.x, this.position.y + Math.sin(pitch), this.position.z - Math.cos(pitch));
     this.tmpLook.lookAt(this.position, this.tmpTarget, this.tmpWorldUp);
     this.tmpQuat.setFromRotationMatrix(this.tmpLook);
@@ -191,8 +190,11 @@ export class Player {
       this.position.y = lakeY;
       this.state = 'lake';
       this.fallVelY = 0;
-      this.lakeHeading = Math.PI; // facing -Z (away from the waterfall)
-      this.lakeSpeed = Math.max(-this.fallVelZ * 0.6, 5);
+      // Face BACK toward the waterfall (which is now behind us in -Z)
+      // heading=0 → tangent points -Z; heading=π → +Z. We've moved -Z forward
+      // during the fall, so the waterfall is now in +Z direction → heading=π.
+      this.lakeHeading = Math.PI;
+      this.lakeSpeed = 0;
     }
     this.group.position.copy(this.position);
   }

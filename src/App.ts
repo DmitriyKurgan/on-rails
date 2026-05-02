@@ -171,7 +171,9 @@ export class App {
           const syntheticRoad = {
             getPointAt: (_t: number, out?: Vector3) => {
               const v = out ?? new Vector3();
-              return v.copy(player.position).addScaledVector(tangent, 6);
+              // Look-at target lifted 12u up so the camera tilts toward the
+              // tall waterfall instead of staring at the lake horizon.
+              return v.copy(player.position).addScaledVector(tangent, 6).add(new Vector3(0, 12, 0));
             },
             getFrameAt: () => ({ tangent, normal, binormal }),
           };

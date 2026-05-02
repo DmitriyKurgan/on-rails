@@ -74,7 +74,7 @@ export interface EndWaterfallHandle {
   tick(dt: number): void;
 }
 
-export const FALL_HEIGHT = 260;      // total drop from track end to lake surface
+export const FALL_HEIGHT = 90;       // shorter drop so the waterfall fits in frame
 
 export function buildEndWaterfall(
   scene: Scene,
@@ -82,9 +82,8 @@ export function buildEndWaterfall(
 ): EndWaterfallHandle {
   const finishPoint = TRACK_POINTS[TRACK_POINTS.length - 1].pos;
 
-  // === Waterfall plane ===
-  // Wide, tall, exactly at the track exit plane, cascading down to the lake.
-  const fallW = 120;
+  // === Waterfall plane: very wide, modest height — iconic shape ===
+  const fallW = 200;
   const fallH = FALL_HEIGHT;
   const fallMat = new ShaderMaterial({
     vertexShader: WATERFALL_VERT,

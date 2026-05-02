@@ -31,10 +31,11 @@ function rng(seed: number): () => number {
   };
 }
 
-// The side bank sand strip. Starts OUTSIDE the wall outer foot so sand
-// never covers the water surface. Wall outer foot ≈ halfWidth + 1.5 = 16.5.
+// Sand starts INSIDE the wall outer profile so it slips UNDER the wall —
+// no thin empty seam between wall outer foot and sand inner edge.
+// Wall outer foot at halfWidth + 1.5; we start sand at halfWidth - 1.
 const GROUND_DROP = 0.0;
-const BANK_INNER = 17;
+const BANK_INNER = 14;
 const BANK_OUTER = 65;     // wide visible bank
 const BANK_SEGMENTS = 320;
 const BANK_T_RANGE = 1.0;
@@ -342,9 +343,10 @@ function buildSideBank(road: Road, side: 1 | -1): BufferGeometry {
     const innerZ = tmp.z + sideV.z * side * BANK_INNER;
     const outerX = tmp.x + sideV.x * side * BANK_OUTER;
     const outerZ = tmp.z + sideV.z * side * BANK_OUTER;
-    // Inner edge at water level (flush with the wall base); outer edge
-    // rises gently so the bank reads as a real beach slope.
-    const innerY = tmp.y - GROUND_DROP + 0.1;
+    // Inner edge slightly below water level — matches the wall outer foot
+    // (dy=-1 in WALL_PROFILE) so sand slides under the wall with no seam.
+    // Outer edge rises gently for beach slope feel.
+    const innerY = tmp.y - GROUND_DROP - 0.8;
     const outerY = tmp.y - GROUND_DROP + 3.0;
 
     positions[i * 6 + 0] = innerX;
